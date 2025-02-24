@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คำนวณคาร์โบไฮเดรตและแคลอรี่</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        .result {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>คำนวณคาร์โบไฮเดรตและแคลอรี่</h1>
+        <form id="form">
+            <div class="form-group">
+                <label for="age">อายุ (ปี)</label>
+                <input type="number" id="age" required>
+            </div>
+            <div class="form-group">
+                <label for="height">ส่วนสูง (cm)</label>
+                <input type="number" id="height" required>
+            </div>
+            <div class="form-group">
+                <label for="weight">น้ำหนัก (kg)</label>
+                <input type="number" id="weight" required>
+            </div>
+            <div class="form-group">
+                <label for="gender">เพศ</label>
+                <select id="gender" required>
+                    <option value="male">ชาย</option>
+                    <option value="female">หญิง</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="activity">กิจกรรมออกกำลังกาย</label>
+                <select id="activity" required>
+                    <option value="none">ไม่เคลื่อนไหว</option>
+                    <option value="light">เล็กน้อย (1-3 ครั้ง/สัปดาห์)</option>
+                    <option value="moderate">ปานกลาง (3-5 ครั้ง/สัปดาห์)</option>
+                    <option value="high">เยอะ (6-7 ครั้ง/สัปดาห์)</option>
+                    <option value="very-high">เยอะพิเศษ (ทุกวัน)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="target-weight">น้ำหนักเป้าหมาย (kg)</label>
+                <input type="number" id="target-weight" required>
+            </div>
+            <button type="button" onclick="calculateCalories()">คำนวณ</button>
+        </form>
+
+        <div class="result" id="result">
+            <!-- ผลลัพธ์แคลอรี่และคาร์โบไฮเดรตจะแสดงที่นี่ -->
+        </div>
+
+        <div class="chart-container" id="chart-container" style="display:none;">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // ฟังก์ชันคำนวณแคลอรี่และคาร์โบไฮเดรต
+        function calculateCalories() {
+            let age = parseInt(document.getElementById("age").value);
+            let height = parseInt(document.getElementById("height").value);
+            let weight = parseInt(document.getElementById("weight").value);
+            let gender = document.getElementById("gender").value;
+            let activity = document.getElementById("activity").value;
+            let targetWeight = parseInt(document.getElementById("target-weight").value);
+
+            // ตรวจสอบข้อมูลที่กรอก
+            if (isNaN(age) || age < 10 || age > 120) {
+                alert("กรุณากรอกอายุที่ถูกต้อง");
+                return;
+            }
+            if (isNaN(height) || height < 50 || height > 300) {
+                alert("กรุณากรอกส่วนสูงที่ถูกต้อง");
+                return;
+            }
+            if (isNaN(weight) || weight < 20 || weight > 500) {
+                alert("กรุณากรอกน้ำหนักที่ถูกต้อง");
+                return;
+            }
+            if (isNaN(targetWeight) || targetWeight < 20 || targetWeight > 500) {
+                alert("กรุณากรอกน้ำหนักเป้าหมายที่ถูกต้อง");
+                return;
+            }
+
+            // คำนวณ BMR (Basal Metabolic Rate) ตามสูตร Harris-Benedict
+            let bmr;
+            if (gender === "male") {
+                bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+            } else {
+                bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+            }
+
+            // ปรับตามกิจกรรม
+            let activityFactor = 1.2;
+            switch (activity) {
+                case "light":
+                    activityFactor = 1.375;
+                    break;
+                case "moderate":
+                    activityFactor = 1.55;
+                    break;
+                case "high":
+                    activityFactor = 1.725;
+                    break;
+                case "very-high":
+                    activityFactor = 1.9;
+                    break;
+            }
+
+            let caloriesNeeded = bmr * activityFactor;
+            let carbRatio = 0.5; // คาร์โบไฮเดรตประมาณ 50% ของแคลอรี่
+            let carbsNeeded = (caloriesNeeded * carbRatio) / 4; // คำนวณกรัมของคาร์โบไฮเดรต (1 กรัม = 4 แคลอรี่)
+
+            // เก็บข้อมูลใน localStorage
+            localStorage.setItem("caloriesNeeded", caloriesNeeded);
+            localStorage.setItem("carbsNeeded", carbsNeeded);
+
+            // แสดงผลลัพธ์
+            document.getElementById("result").innerHTML = `
+                <p>แคลอรี่ที่ต้องการ: ${Math.round(caloriesNeeded)} แคลอรี่</p>
+                <p>คาร์โบไฮเดรตที่ต้องการ: ${Math.round(carbsNeeded)} กรัม</p>
+            `;
+
+            // แสดงกราฟ
+            document.getElementById("chart-container").style.display = 'block';
+            let ctx = document.getElementById('myChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['แคลอรี่ที่ต้องการ', 'คาร์โบไฮเดรตที่ต้องการ'],
+                    datasets: [{
+                        label: 'ความต้องการ',
+                        data: [Math.round(caloriesNeeded), Math.round(carbsNeeded)],
+                        backgroundColor: ['#FF5733', '#33B5FF'],
+                        borderColor: ['#FF5733', '#33B5FF'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // ฟังก์ชันดึงข้อมูลจาก localStorage เมื่อโหลดหน้า
+        window.onload = function() {
+            let caloriesNeeded = localStorage.getItem("caloriesNeeded");
+            let carbsNeeded = localStorage.getItem("carbsNeeded");
+
+            if (caloriesNeeded && carbsNeeded) {
+                document.getElementById("result").innerHTML = `
+                    <p>แคลอรี่ที่ต้องการจากครั้งก่อน: ${Math.round(caloriesNeeded)} แคลอรี่</p>
+                    <p>คาร์โบไฮเดรตที่ต้องการจากครั้งก่อน: ${Math.round(carbsNeeded)} กรัม</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
